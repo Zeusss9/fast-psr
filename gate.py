@@ -27,9 +27,9 @@ gate1 = {
     "X": np.array([[0, 1], [1, 0]], dtype=np.complex128),
     "Y": np.array([[0, -1j], [1j, 0]], dtype=np.complex128),
     "Z": np.array([[1, 0], [0, -1]], dtype=np.complex128),
-    # "Rx": lambda theta: np.array([[np.cos(theta/2), -1j*np.sin(theta/2)], [-1j*np.sin(theta/2), np.cos(theta/2)]], dtype=np.complex128),
-    # "Ry": lambda theta: np.array([[np.cos(theta/2), -np.sin(theta/2)], [np.sin(theta/2), np.cos(theta/2)]], dtype=np.complex128),
-    # "Rz": lambda theta: np.array([[np.exp(-1j*theta/2), 0], [0, np.exp(1j*theta/2)]], dtype=np.complex128),
+    "Rx": lambda theta: np.array([[np.cos(theta/2), -1j*np.sin(theta/2)], [-1j*np.sin(theta/2), np.cos(theta/2)]], dtype=np.complex128),
+    "Ry": lambda theta: np.array([[np.cos(theta/2), -np.sin(theta/2)], [np.sin(theta/2), np.cos(theta/2)]], dtype=np.complex128),
+    "Rz": lambda theta: np.array([[np.exp(-1j*theta/2), 0], [0, np.exp(1j*theta/2)]], dtype=np.complex128),
     "H": np.array([[1, 1], [1, -1]], dtype=np.complex128)/np.sqrt(2),
 }
 
