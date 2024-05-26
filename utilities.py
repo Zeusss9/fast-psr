@@ -10,3 +10,4 @@ def update_slot(slots, B):
 
 def get_qubit_indices(qargs):
     return [q.index for q in qargs]
+

@@ -1,6 +1,41 @@
 import qiskit
 
-def split_control(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
+import numpy as np
+import utilities
+
+
+def qc_to_qcs_noncontrol2(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]: 
+    qcs = []
+    sub_qc = qiskit.QuantumCircuit(qc.num_qubits)
+    counter = 0
+    active_2qubit = 0 # 0 mean dactive, 1 mean active, 2 mean break instruction
+    slots = np.zeros(qc.num_qubits)
+    for _, qargs, _ in qc.data: 
+        indices = utilities.get_qubit_indices(qargs)
+        if len(indices) == 2:
+            active_2qubit += 1
+        
+        slots = utilities.update_slot(slots, indices)
+        if any(slot > 1 for slot in slots) or active_2qubit == 2:
+            qcs.append(sub_qc)
+            active_2qubit = 0
+            sub_qc = qiskit.QuantumCircuit(qc.num_qubits)
+            sub_qc.append(qc[counter][0], qc[counter][1])
+            if len(indices) == 2:
+                active_2qubit += 1
+            slots = np.zeros(qc.num_qubits)
+            slots = utilities.update_slot(slots, utilities.get_qubit_indices(qargs))
+            qc.data = qc.data[counter + 1:]
+            counter = 0
+        else:
+            sub_qc.append(qc[counter][0], qc[counter][1])
+            counter += 1
+            if counter >= len(qc.data):
+                qcs.append(sub_qc)
+                return qcs
+    return qcs
+
+def qc_to_qcs_noncontrol(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
     """Split n-depth circuit into n sub-circuits, each sub-circuit does not have > 2 2-qubit gates
 
     Args:
@@ -40,7 +75,7 @@ def split_control(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:
 
 
 
-def split(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
+def qc_to_qcs(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
     """Split n-depth circuit into n sub-circuits
 
     Args:
