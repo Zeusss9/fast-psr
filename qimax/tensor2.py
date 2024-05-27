@@ -1,5 +1,5 @@
-import constant
-import gate
+import qimax.constant as constant
+import qimax.gate as gate
 import numpy as np
 import tensor
 

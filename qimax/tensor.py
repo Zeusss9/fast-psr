@@ -1,5 +1,5 @@
 import numpy as np
-import gate, constant
+from . import gate, constant
 
 def AM(A): # AP0
     if A.ndim == 1:
@@ -134,7 +134,7 @@ def RXA(A, theta):
     cos_theta_2_times_A = np.cos(theta / 2) * A
     sin_theta_2_times_A = -1j * np.sin(theta / 2) * A
     m, n = A.shape
-    out = np.zeros((2, m, 2, n), dtype = A.dtype)
+    out = np.zeros((2, m, 2, n), dtype=np.complex64)
     
     out[0, :, 0, :] = cos_theta_2_times_A
     out[0, :, 1, :] = sin_theta_2_times_A
@@ -150,7 +150,7 @@ def ARX(A, theta):
     cos_theta_2_times_A = np.cos(theta / 2) * A
     sin_theta_2_times_A = -1j * np.sin(theta / 2) * A
     m, n = A.shape
-    out = np.zeros((m, 2, n, 2), dtype = A.dtype)
+    out = np.zeros((m, 2, n, 2), dtype=np.complex64)
     out[:, 0, :, 0] = cos_theta_2_times_A
     out[:, 0, :, 1] = sin_theta_2_times_A
     out[:, 1, :, 0] = sin_theta_2_times_A
@@ -164,7 +164,7 @@ def RYA(A, theta):
     cos_theta_2_times_A = np.cos(theta / 2) * A
     sin_theta_2_times_A = np.sin(theta / 2) * A
     m, n = A.shape
-    out = np.zeros((2, m, 2, n), dtype = A.dtype)
+    out = np.zeros((2, m, 2, n), dtype=np.complex64)
     
     out[0, :, 0, :] = cos_theta_2_times_A
     out[0, :, 1, :] = -sin_theta_2_times_A
@@ -180,7 +180,7 @@ def ARY(A, theta):
     cos_theta_2_times_A = np.cos(theta / 2) * A
     sin_theta_2_times_A = np.sin(theta / 2) * A
     m, n = A.shape
-    out = np.zeros((m, 2, n, 2), dtype = A.dtype)
+    out = np.zeros((m, 2, n, 2), dtype=np.complex64)
     out[:, 0, :, 0] = cos_theta_2_times_A
     out[:, 0, :, 1] = -sin_theta_2_times_A
     out[:, 1, :, 0] = sin_theta_2_times_A
@@ -193,7 +193,7 @@ def ARZ(A, theta):
         return A * gate.gate['RZ'](theta)
     phase = 1j * theta / 2
     m, n = A.shape
-    out = np.zeros((m, 2, n, 2), dtype=A.dtype)
+    out = np.zeros((m, 2, n, 2), dtype=np.complex64)
     out[:, 0, :, 0] = np.exp(-phase) * A
     out[:, 0, :, 1] = 0
     out[:, 1, :, 0] = 0
@@ -249,7 +249,7 @@ def RZA(A, theta):
 #         return np.array([[cos_theta_2_times_A, sin_theta_2_times_A],
 #                          [sin_theta_2_times_A, cos_theta_2_times_A]])
 #     m, n = A.shape
-#     out = np.zeros((m, 4, n, 4), dtype = A.dtype)
+#     out = np.zeros((m, 4, n, 4), dtype=np.complex64)
 #     out[:, 0, :, 0] = A
 #     out[:, 1, :, 1] = A
 #     out[:, 2, :, 2] = cos_theta_2_times_A
@@ -266,7 +266,7 @@ def RZA(A, theta):
 #         return np.array([[cos_theta_2_times_A, sin_theta_2_times_A],
 #                          [sin_theta_2_times_A, cos_theta_2_times_A]])
 #     m, n = A.shape
-#     out = np.zeros((4, m, 4, n), dtype = A.dtype)
+#     out = np.zeros((4, m, 4, n), dtype=np.complex64)
 #     out[0, :, 0, :] = A
 #     out[1, :, 1, :] = A
 #     out[2, :, 2, :] = cos_theta_2_times_A
@@ -283,7 +283,7 @@ def RZA(A, theta):
 #         return np.array([[cos_theta_2_times_A, -sin_theta_2_times_A],
 #                          [sin_theta_2_times_A, cos_theta_2_times_A]])
 #     m, n = A.shape
-#     out = np.zeros((m, 4, n, 4), dtype = A.dtype)
+#     out = np.zeros((m, 4, n, 4), dtype=np.complex64)
     
 #     out[:, 0, :, 0] = A
 #     out[:, 1, :, 1] = A
@@ -302,7 +302,7 @@ def RZA(A, theta):
 #         return np.array([[cos_theta_2_times_A, -sin_theta_2_times_A],
 #                          [sin_theta_2_times_A, cos_theta_2_times_A]])
 #     m, n = A.shape
-#     out = np.zeros((4, m, 4, n), dtype = A.dtype)
+#     out = np.zeros((4, m, 4, n), dtype=np.complex64)
     
 #     out[0, :, 0, :] = A
 #     out[1, :, 1, :] = A
@@ -322,7 +322,7 @@ def RZA(A, theta):
 #         return np.array([[A, A],
 #                          [np.exp(-phase) * A, np.exp(phase) * A]])
 #     m, n = A.shape
-#     out = np.zeros((4, m, 4, n), dtype = A.dtype)
+#     out = np.zeros((4, m, 4, n), dtype=np.complex64)
 #     out[0, :, 0, :] = A
 #     out[1, :, 1, :] = A
 #     out[2, :, 2, :] = np.exp(-phase) * A
@@ -337,7 +337,7 @@ def RZA(A, theta):
 #         return A*np.array([[A, A],
 #                          [np.exp(-phase) * A, np.exp(phase) * A]])
 #     m, n = A.shape
-#     out = np.zeros((m, 4, n, 4), dtype = A.dtype)
+#     out = np.zeros((m, 4, n, 4), dtype=np.complex64)
 #     out[:, 0, :, 0] = A
 #     out[:, 1, :, 1] = A
 #     out[:, 2, :, 2] = np.exp(-phase) * A

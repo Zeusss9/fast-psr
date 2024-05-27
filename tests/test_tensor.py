@@ -1,7 +1,7 @@
 import pytest
 import sys
 sys.path.insert(0, '..')
-import tensor, gate, constant
+import tensor, qimax.gate as gate, qimax.constant as constant
 import numpy as np
 
 def test_P0A():

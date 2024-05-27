@@ -1,7 +1,5 @@
 import numpy as np
-import constant
-import tensor
-import utilities
+from . import constant, tensor, utilities
 import numpy as np
 
 

@@ -1,4 +1,4 @@
-import gate, constant
+import qimax.gate as gate, qimax.constant as constant
 import numpy as np
 def test_gate_to_tensor():
     cx13 = gate.Gate('X', indices = [1, 3])

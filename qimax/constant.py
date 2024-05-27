@@ -9,3 +9,6 @@ def state0(n):
     state = np.zeros(2**n)
     state[0] = 1
     return state
+
+r = 1/2
+epsilon = np.pi/2
