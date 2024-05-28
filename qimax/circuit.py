@@ -18,6 +18,8 @@ class U():
                 self.matrix_form = u.matrix_form
                 return True
         return False
+    def len_params(self):
+        return len([param for param in self.params_form if param != -999])
     def to_matrix(self):
         if self.matrix_form is None:
             self.matrix_form = converter.string_to_matrix(self.params_form, self.tensor_form)

@@ -5,8 +5,8 @@ def P(i, n = 2):
     result[i // n, i % n] = 1
     return result
 
-def state0(n):
-    state = np.zeros(2**n)
+def state0(num_qubits):
+    state = np.zeros(2**num_qubits)
     state[0] = 1
     return state
 
