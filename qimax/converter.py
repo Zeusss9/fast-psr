@@ -2,6 +2,11 @@
 import numpy as np
 import re, qiskit
 from . import utilities, gate, tensor
+
+def qc_to_qasm(qc):
+    from qiskit.qasm2 import dumps 
+    return dumps(qc)
+
 def qasm_to_qasmgates(qasm):
     gates = qasm.split('\n')[3:-1]
     qasm_gates = []

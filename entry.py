@@ -1,53 +1,38 @@
-import qiskit.quantum_info as qi
-import qimax.constant
-from qoop.core.random_circuit import generate_with_pool
-from qoop.core.gradient import grad_loss
-num_qubits = 4
-qc = generate_with_pool(num_qubits, 2)
-qc = qc.assign_parameters([1] * qc.num_parameters)
-class U():
-    def __init__(self, params_form, tensor_form, index = 0):
-        self.params_form = params_form
-        self.tensor_form = tensor_form
-        self.matrix_form = None
-        self.index = index
-    def plus_params_form(self, plus: int):
-        # add plus to the 
-        self.params_form = params_form
-        return self
-    def compare(self, us):
-        for u in us:
-            if self.params_form == u.params_form and self.tensor_form == u.tensor_form:
-                self.index = u.index
-                self.matrix_form = u.matrix_form
-                return True
-        return False
-    def to_matrix(self):
-        if self.matrix_form is None:
-            self.matrix_form = qimax.converter.string_to_matrix(self.params_form, self.tensor_form)
-        return self.matrix_form
-
-import qimax.constant
+import qimax.utilities
+import qimax.tensor
+import qimax.gate
 import qimax.converter
-import qimax.splitter
-matrices = []
-Us = []
-Usm = [] # [U_{0:m-1}, U_{1:m-1}, ... U_{m-1:m-1}]
-index = 0
-print(qc.draw())
-qasm_gates = qimax.converter.qasm_to_qasmgates(qc.qasm())
-qcs = qimax.splitter.qasmgates_to_qcs2(qasm_gates)
-#qcs.reverse() 
-for qasmgates in qcs:
-    gates = qimax.converter.qasmgates_to_gates(qasmgates)
-    params_form, tensor_form = qimax.converter.gates_to_string(gates, num_qubits)
-    u = U(params_form, tensor_form, index)
-    if u.compare(Us) == False:
-        index += 1
-        u.to_matrix()
-    Us.append(u)
-for u in Us:
-    print(u.params_form)
+import numpy as np, qiskit, re
+import time
+import qimax.gradient
+from qoop.core.random_circuit import generate_with_pool
+num_qubits = list(range(2, 8))
 
-
-
+depths = list(range(2, 50))
+time_psr = np.zeros((len(num_qubits), len(depths)))
+time_proposed_psr = np.zeros((len(num_qubits), len(depths)))
+time_qiskit = np.zeros((len(num_qubits), len(depths)))
+for i, num_qubit in enumerate(num_qubits):
+    for j, depth in enumerate(depths):
+            print(num_qubit, depth)
+            time_psrs, time_proposed_psrs, time_qiskits = [], [], []
+            for k in range(50):
+                qc = generate_with_pool(num_qubit, depth)
+                start = time.time()
+                result1 = qimax.gradient.psr(qc)
+                end = time.time()
+                time_psrs.append(end - start)
+                start = time.time()
+                result1 = qimax.gradient.proposed_psr(qc)
+                end = time.time()
+                time_proposed_psrs.append(end - start)
+                start = time.time()
+                result1 = qimax.gradient.qiskit(qc)
+                end = time.time()
+                time_qiskits.append(end - start)
+            time_psr[i, j] = np.mean(time_psrs)
+            time_proposed_psr[i, j] = np.mean(time_proposed_psrs)
+            time_qiskit[i, j] = np.mean(time_qiskits)
+np.savetxt(f"result/time_psr.csv", time_psr, delimiter=",")
+np.savetxt(f"result/time_proposed_psr.csv", time_proposed_psr, delimiter=",")
+np.savetxt(f"result/time_qiskit.csv", time_qiskit, delimiter=",")
