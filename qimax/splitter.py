@@ -21,7 +21,7 @@ def qasm_to_qasmgates(qc_qasm):
     return qasm_gates
 
 def qasmgates_to_qcs2(gates: list) -> list[qiskit.QuantumCircuit]: 
-    """Add only 1 param in one layer
+    """Add only 1 param and at much one control in one layer
 
     Args:
         gates (list): _description_
@@ -54,6 +54,51 @@ def qasmgates_to_qcs2(gates: list) -> list[qiskit.QuantumCircuit]:
             if len(indices) == 2:
                 active_2qubit += 1
                 #print(f"Active 2qubit {active_2qubit}")
+            if param != -999:
+                active_1param += 1
+                #print(f"Active 1param {active_1param}")
+            slots = np.zeros(num_qubits)
+            slots = utilities.update_slot(slots, indices)
+            gates = gates[counter:]
+            counter = 0
+        else:
+            sub_qc.append((name, param, indices))
+            #print(f"Append {name}")
+            counter += 1
+        if counter >= len(gates):
+            qcs.append(sub_qc)
+            return qcs
+    return qcs
+
+
+def qasmgates_to_qcs3(gates: list) -> list[qiskit.QuantumCircuit]: 
+    """Add only 1 param in one layer
+
+    Args:
+        gates (list): _description_
+
+    Returns:
+        list[qiskit.QuantumCircuit]: _description_
+    """
+    qcs = []
+    sub_qc = []
+    counter = 0
+    active_1param = 0 # 0 mean dactive, 1 mean active, 2 mean break instruction
+    num_qubits = max(max(gates, key=lambda x: max(x[2]))[2]) + 1
+    slots = np.zeros(num_qubits)
+    for name, param, indices in gates: 
+        if param != -999:
+            active_1param += 1
+        slots = utilities.update_slot(slots, indices)
+        if any(slot > 1 for slot in slots) or active_1param == 2:
+            qcs.append(sub_qc)
+            #print(f"Append sub_qc {len(qcs)}")
+            active_2qubit = 0
+            active_1param = 0
+            sub_qc = []
+            sub_qc.append((name, param, indices))
+            #print(f"Append {name}")
+            counter += 1
             if param != -999:
                 active_1param += 1
                 #print(f"Active 1param {active_1param}")

@@ -1,6 +1,6 @@
 import numpy as np
 from . import constant, tensor, utilities
-import numpy as np
+
 
 
 class Gate():
