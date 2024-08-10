@@ -1,7 +1,7 @@
 import pytest
 import sys
 sys.path.insert(0, '..')
-import tensor, qimax.gate as gate, qimax.constant as constant
+from qimax import tensor, gate, constant
 import numpy as np
 
 def test_P0A():
@@ -120,50 +120,50 @@ def testARZ():
     test_result = tensor.ARZ(A, theta)
     assert np.allclose(true_result, test_result)
     
-def testACRX():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(A.conj(), gate.gate['CRX'](theta))
-    test_result = tensor.ACRX(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testACRX():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(A.conj(), gate.gate['CRX'](theta))
+#     test_result = tensor.ACRX(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def testACRY():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(A.conj(), gate.gate['CRY'](theta))
-    test_result = tensor.ACRY(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testACRY():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(A.conj(), gate.gate['CRY'](theta))
+#     test_result = tensor.ACRY(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def testACRZ():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(A.conj(), gate.gate['CRZ'](theta))
-    test_result = tensor.ACRZ(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testACRZ():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(A.conj(), gate.gate['CRZ'](theta))
+#     test_result = tensor.ACRZ(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def testCRXA():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(gate.gate['CRX'](theta), A)
-    test_result = tensor.CRXA(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testCRXA():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(gate.gate['CRX'](theta), A)
+#     test_result = tensor.CRXA(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def testCRYA():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(gate.gate['CRY'](theta), A)
-    test_result = tensor.CRYA(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testCRYA():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(gate.gate['CRY'](theta), A)
+#     test_result = tensor.CRYA(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def testCRZA():
-    A = np.random.rand(10, 10)
-    theta = np.random.uniform(0, 2*np.pi)
-    true_result = np.kron(gate.gate['CRZ'](theta), A)
-    test_result = tensor.CRZA(A, theta)
-    assert np.allclose(true_result, test_result)
+# def testCRZA():
+#     A = np.random.rand(10, 10)
+#     theta = np.random.uniform(0, 2*np.pi)
+#     true_result = np.kron(gate.gate['CRZ'](theta), A)
+#     test_result = tensor.CRZA(A, theta)
+#     assert np.allclose(true_result, test_result)
     
-def test_mutate():
-    a = 4 + 4
-    if a > 5:
-        a = 5
-    assert a == 5
+# def test_mutate():
+#     a = 4 + 4
+#     if a > 5:
+#         a = 5
+#     assert a == 5

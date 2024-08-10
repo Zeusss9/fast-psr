@@ -71,8 +71,8 @@ def proposed_psr(qc):
     for u in Us[1:]:
         Uk = u.matrix_form @ Uk
         Usm.append(Uk)
-    # [I, U_{U_{m-1:m-1}, ..., U_{1:m-1}]
-    Usm.reverse() # Now is [U_{1:m-1}, ... U_{m-1:m-1}, I] # ignore U_{0:m-1}, m = 5, [U_{1:4}, U_{2:4}, U_{3:4}, U_{4:4]
+    # [I, U_{m-1:m-1}, ..., U_{1:m-1}]
+    Usm.reverse() # Now is [U_{1:m-1}, ... U_{m-1:m-1}, I] # ignore U_{0:m-1}, m = 5, [U_{1:4}, U_{2:4}, U_{3:4}, U_{4:4}, I]
 
     Uresult = []
     Ufront = np.eye(2**num_qubits)
