@@ -15,7 +15,7 @@ def psr(qc):
         gates = converter.qasmgates_to_gates(qasmgates)
         params_form, tensor_form = converter.gates_to_string(gates, num_qubits)
         u = circuit.U(params_form, tensor_form, index)
-        if u.compare(Us) == False:
+        if u.compare(Us) is False:
             index += 1
             u.to_matrix()
         Us.append(u)
@@ -61,7 +61,7 @@ def proposed_psr(qc):
         gates = converter.qasmgates_to_gates(qasmgates)
         params_form, tensor_form = converter.gates_to_string(gates, num_qubits)
         u = circuit.U(params_form, tensor_form, index)
-        if u.compare(Us) == False:
+        if u.compare(Us) is False:
             index += 1
             u.to_matrix()
         Us.append(u)

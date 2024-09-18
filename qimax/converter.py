@@ -8,17 +8,26 @@ def qc_to_qasm(qc):
     return dumps(qc)
 
 def qasm_to_qasmgates(qasm):
+    """_summary_
+
+    Args:
+        qasm (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     gates = qasm.split('\n')[3:-1]
     qasm_gates = []
-    for gate in gates:
-        gate = gate[:-1].split(' ')
+    for g in gates:
+        print(g)
+        g = g[:-1].split(' ')
         # print(gate)
-        indices = re.findall(r'\d+', gate[1])
+        indices = re.findall(r'\d+', g[1])
         indices = [int(index) for index in indices]
-        matches = re.match(r'([a-z]+)(\(\d+\.\d+\))?', gate[0])
+        matches = re.match(r'([a-z]+)(\(\d+\.\d+\))?', g[0])
         # Extract the function name and value from the matches
         name = matches.group(1).upper()
-        name = name[1:] if name[0] == 'C' else name 
+        name = name[1:] if name[0] == 'C' else name
         if matches.group(2) is None:
             param = -999
         else:
@@ -26,7 +35,15 @@ def qasm_to_qasmgates(qasm):
         qasm_gates.append((name, param, indices))
     return qasm_gates
 
-def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]: 
+def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]:
+    """_summary_
+
+    Args:
+        gates (list): _description_
+
+    Returns:
+        list[qiskit.QuantumCircuit]: _description_
+    """
     qcs = []
     sub_qc = []
     counter = 0
@@ -36,7 +53,6 @@ def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]:
     for name, param, indices in gates: 
         if len(indices) == 2:
             active_2qubit += 1
-        
         slots = utilities.update_slot(slots, indices)
         if any(slot > 1 for slot in slots) or active_2qubit == 2:
             qcs.append(sub_qc)
@@ -59,13 +75,22 @@ def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]:
 
 
 def qasmgates_to_gates(qasmgates: list[str]):
+    """_summary_
+
+    Args:
+        qasmgates (list[str]): _description_
+
+    Returns:
+        _type_: _description_
+    """
     gates = []
-    for name, param, indices in qasmgates: 
+    for name, param, indices in qasmgates:
         gates.append(gate.Gate(name, indices = indices, param = param))
     return gates
-    
+  
 def gates_to_string(gates: list[gate.Gate], num_qubits: int) -> np.ndarray:
-    """Return the matrix representation of a circuit composed of a list of gates acting on `num_qubits` qubits.
+    """Return the matrix representation of a circuit 
+    composed of a list of gates acting on `num_qubits` qubits.
 
     Args:
         gates (list[Gate]): List of gates in the circuit
@@ -82,21 +107,19 @@ def gates_to_string(gates: list[gate.Gate], num_qubits: int) -> np.ndarray:
     # Update tensor form and params form based on gates
     # => tensor_form = [['I', 'M', 'RY', 'I', 'I'], ['I', 'P', 'RY', 'X', 'I']]
     # => params_form = [0, 0, np.pi, 0, 0]
-    for gate in gates:
-        if gate.param is not None:
-            if len(gate.indices) == 1:
-                params_form[gate.indices[0]] = gate.param
+    for g in gates:
+        if g.param is not None:
+            if len(g.indices) == 1:
+                params_form[g.indices[0]] = g.param
             else:
-                params_form[gate.indices[1]] = gate.param
-        if len(gate.indices) == 1:
-            tensor_form[0][gate.indices[0]] = gate.name
+                params_form[g.indices[1]] = g.param
+        if len(g.indices) == 1:
+            tensor_form[0][g.indices[0]] = g.name
         else:
-            
             tensor_form = utilities.duplicate_xss(tensor_form)
-            tensor_form[0][gate.indices[0]] = 'M' # P0
-            tensor_form[1][gate.indices[0]] = 'P' # P3
-            tensor_form[1][gate.indices[1]] = gate.name
-    
+            tensor_form[0][g.indices[0]] = 'M' # P0
+            tensor_form[1][g.indices[0]] = 'P' # P3
+            tensor_form[1][g.indices[1]] = g.name
     return params_form, tensor_form
 
 def string_to_matrix(params_form: np.ndarray, tensor_form: np.ndarray) -> np.ndarray:
@@ -114,7 +137,7 @@ def string_to_matrix(params_form: np.ndarray, tensor_form: np.ndarray) -> np.nda
     # -> I \otimes M \otimes RY(np.pi) \otimes I \otimes I
     #  + I \otimes P \otimes RY(np.pi) \otimes X \otimes I
     matrices = [np.array([1])]*len(tensor_form)
-    for i in range(0, len(tensor_form[0])):
+    for i in range(len(tensor_form[0])):
         for j in range(len(tensor_form)):
             #print(f'A{tensor_form[j][i]}')
             if len(tensor_form[j][i]) >= 2:
