@@ -9,7 +9,7 @@ for k in range(0, 5):
     time_qiskit = []
     time_pennylane = []
     time_qulacs = []
-    for j in range(2, 17):
+    for j in range(2, 4):
         for package in [psr.psr_qiskit, psr.psr_pennylane, psr.psr_qulacs]:
             start = time.time()
             package(j)
@@ -24,9 +24,9 @@ for k in range(0, 5):
     times_qiskit.append(time_qiskit)
     times_pennylane.append(time_pennylane)
     times_qulacs.append(time_qulacs)
-np.savetxt("./times/qiskit.txt", np.mean(times_qiskit))
-np.savetxt("./times/pennylane.txt", np.mean(times_pennylane))
-np.savetxt("./times/qulacs.txt", np.mean(times_qulacs))
-np.savetxt("./times/qiskit_std.txt", np.std(times_qiskit))
-np.savetxt("./times/pennylane_std.txt", np.std(times_pennylane))
-np.savetxt("./times/qulacs_std.txt", np.std(times_qulacs))
+np.savetxt("./times/qiskit.txt", np.mean(times_qiskit, axis = 0))
+np.savetxt("./times/pennylane.txt", np.mean(times_pennylane, axis = 0))
+np.savetxt("./times/qulacs.txt", np.mean(times_qulacs, axis = 0))
+np.savetxt("./times/qiskit_std.txt", np.std(times_qiskit, axis = 0))
+np.savetxt("./times/pennylane_std.txt", np.std(times_pennylane, axis = 0))
+np.savetxt("./times/qulacs_std.txt", np.std(times_qulacs, axis = 0))
