@@ -19,7 +19,6 @@ def qasm_to_qasmgates(qasm):
     gates = qasm.split('\n')[3:-1]
     qasm_gates = []
     for g in gates:
-        print(g)
         g = g[:-1].split(' ')
         # print(gate)
         indices = re.findall(r'\d+', g[1])
@@ -34,6 +33,29 @@ def qasm_to_qasmgates(qasm):
             param = float(matches.group(2)[1:-1])
         qasm_gates.append((name, param, indices))
     return qasm_gates
+
+def parse_qasm(qasm_code):
+    instructions = []
+    lines = qasm_code.splitlines()
+    
+    for line in lines:
+        line = line.strip()
+        if line.startswith("//") or line == "":
+            continue  # Ignore comments and empty lines
+        
+        match = re.match(r'([a-zA-Z]+)\s*(\(.*?\))?\s+([q0-9,\[\]]+);?', line)
+        if match:
+            name = match.group(1)
+            param = match.group(2)
+            indices = match.group(3)
+            
+            param = float(param.strip('()').split(',')[0]) if param else -999
+            indices = [int(i) for i in re.findall(r'\d+', indices)]
+            
+            instructions.append((name.upper(), param, indices))
+    
+    return instructions[2:]
+
 
 def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]:
     """_summary_

@@ -1,7 +1,6 @@
 import qiskit, re
 import numpy as np
 from . import utilities
-
 def qasm_to_qasmgates(qc_qasm):
     gates = qc_qasm.split('\n')[3:-1]
     qasm_gates = []
@@ -114,6 +113,82 @@ def qasmgates_to_qcs3(gates: list) -> list[qiskit.QuantumCircuit]:
             qcs.append(sub_qc)
             return qcs
     return qcs
+
+
+def qasmgates_to_qcs4(gates: list) -> list[qiskit.QuantumCircuit]: 
+    """Add only 1 param or one control in one layer
+
+    Args:
+        gates (list): _description_
+
+    Returns:
+        list[qiskit.QuantumCircuit]: _description_
+    """
+    qcs = []
+    sub_qc = []
+    temp_noncx = []
+    active_2qubit = 0 # 0 mean dactive, 1 mean break instruction
+    active_1param = 0 # 0 mean dactive, 1 mean active, 2 mean break instruction
+    num_qubits = max(max(gates, key=lambda x: max(x[2]))[2]) + 1
+    slots = np.zeros(num_qubits)
+    for name, param, indices in gates: 
+        if name == 'CX':
+            sub_qc.append((name, param, indices))
+            active_2qubit = True
+    return qcs
+
+
+
+def operatoring(instructors):
+    """Construct operators from the list of operators and list of xoperators
+    """
+    is_cx_first = False
+    operators = []
+    operator = []
+    operator_temp = []
+    xoperator = []
+    xoperator_temp = []
+    xoperators = []
+    
+    if instructors[0][0] == "CX":
+        is_cx_first = True
+    num_qubits = max(max(instructors, key=lambda x: max(x[2]))[2]) + 1
+    barriers_cx = [0] * num_qubits
+    barriers_noncx = [0] * num_qubits
+    index_u_cx = 0
+    index_u_noncx = 0
+    index_u_next_cx = 0
+    index_u_next_noncx = 0
+    break_noncx = False
+    j = 0
+    gatess = [[0 for _ in range(num_qubits)] for _ in range(len(instructors))]
+    while len(instructors) > 0:
+        gate, param, index = instructors[0]
+        if gate == "CX":
+            barriers_cx[index[0]] += 1
+            barriers_cx[index[1]] += 1
+            gatess[index_u_cx][0] = instructors.pop(0)
+            index_u_next_noncx = index_u_cx + 1
+        else:
+            if barriers_noncx[index[0]] == 0 and barriers_cx[index[0]] == 0:
+                barriers_noncx[index[0]] += 1
+                gatess[index_u_noncx][index[0]] = instructors.pop(0)
+                if sum(barriers_noncx) >= num_qubits and np.all(barriers_noncx):
+                    index_u_noncx = index_u_next_noncx
+                    barriers_cx = [0] * num_qubits
+                    barriers_noncx = [0] * num_qubits
+            else:
+                operator_temp.append(instructors.pop(0))
+    
+
+    return gatess
+
+
+
+
+
+
+
 
 def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]: 
     qcs = []
