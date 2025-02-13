@@ -1,67 +1,64 @@
-
 import numpy as np
-qasm_gates = [('RZ', 0.3, [0]),
- ('CX', -999, [0, 1]),
- ('H', -999, [2]),
- ('H', -999, [0]),
- ('RX', 0.5, [1]),
- ('H', -999, [2]),
- ('CX', -999, [0, 1]),
- ('RZ', 0.5, [0]),
- ('H', -999, [2])]
+gate = {
+    "I": np.array([[1, 0], [0, 1]], dtype=np.complex128),
+    "RX": lambda theta: np.array(
+        [
+            [np.cos(theta / 2), -1j * np.sin(theta / 2)],
+            [-1j * np.sin(theta / 2), np.cos(theta / 2)],
+        ],
+        dtype=np.complex128,
+    ),
+    "RY": lambda theta: np.array(
+        [
+            [np.cos(theta / 2), -np.sin(theta / 2)],
+            [np.sin(theta / 2), np.cos(theta / 2)],
+        ],
+        dtype=np.complex128,
+    ),
+    "RZ": lambda theta: np.array(
+        [[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]], dtype=np.complex128
+    ),
+    "H": np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
+}
 
-def operatoring(instructors):
-    """Construct operators from the list of operators and list of xoperators
-    """
-    is_cx_first = False
-    operators = []
-    operator = []
-    operator_temp = []
-    xoperator = []
-    xoperator_temp = []
-    xoperators = []
-    
-    if instructors[0][0] == "CX":
-        is_cx_first = True
-    num_qubits = max(max(instructors, key=lambda x: max(x[2]))[2]) + 1
-    barriers = [0] * num_qubits
-    if instructors[0][0] == "CX":
-        index_u_cx = 0
-        index_u_noncx = 1
-    else:
-        index_u_cx = 1
-        index_u_noncx = 0
-    index_u_next_cx = 0
-    index_u_next_noncx = 0
-    break_noncx = False
-    noncx_active = True
-    j = 0
-    gatess = [[0 for _ in range(num_qubits)] for _ in range(len(instructors))]
-    while len(instructors) > 0:
-        gate, param, index = instructors[0]
-        if gate == "CX":
-            barriers[index[0]] += 1
-            barriers[index[1]] += 1
-            if index_u_cx <= index_u_noncx:
-                index_u_cx = index_u_noncx
-            gatess[index_u_cx][0] = instructors.pop(0)
-            index_u_next_noncx = index_u_cx + 1
-            instructors = operator_temp + instructors
+import qiskit
+
+num_qubits = 3
+qc = qiskit.QuantumCircuit(num_qubits)
+qc.rz(0.3, 0)
+qc.rz(0.4, 1)
+qc.cx(0, 1)
+qc.h(2)
+qc.h(0)
+qc.rx(0.5, 1)
+qc.h(2)
+qc.cx(0, 1)
+qc.rz(0.5, 0)
+qc.h(2)
+from qimax import converter, circuit, splitter
+
+
+qcs = splitter.qc_to_qcs(qc)
+gatess1 = converter.qcs_to_gatess(qcs)
+
+
+gatess = [[0 for _ in range(num_qubits)] for _ in range(len(gatess1))]
+for index, gates in enumerate(gatess1):
+    slots = np.ones(num_qubits)
+    print('---')
+    print(gates)
+    for gate in gates:
+        if gate[0] == 'CX':
+            gatess[index][0] = ('CX', gate[1], gate[2])
         else:
-            if barriers[index[0]] == 0:
-                barriers[index[0]] += 1
-                gatess[index_u_noncx][index[0]] = instructors.pop(0)
-                if sum(barriers) >= num_qubits and np.all(barriers):
-                    if index_u_noncx >= index_u_cx:
-                        index_u_noncx += 1
-                    else:
-                        index_u_noncx = index_u_next_noncx
-                    barriers = [0] * num_qubits
-            else:
-                operator_temp.append(instructors.pop(0))
-    
+            slots[gate[2][0]] = 0
+            gatess[index][gate[2][0]] = (gate[0], gate[1], gate[2])
+    if gate == 'CX':
+        continue
+    for j, is_active in enumerate(slots):
+        if is_active:
+            gatess[index][j] = (['I', -999, [j]])
 
-    return gatess
-
-gatess = operatoring(qasm_gates.copy())
-gatess
+print('xxxx')  
+for u in gatess:
+    print(u)

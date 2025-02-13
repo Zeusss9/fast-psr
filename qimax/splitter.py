@@ -1,6 +1,101 @@
 import qiskit, re
 import numpy as np
 from . import utilities
+
+
+from qiskit import QuantumCircuit, transpile
+from qiskit.converters import circuit_to_dag
+
+def qc_to_qcs(qc):
+	def split_layer_into_subcircuits(layer_ops, num_qubits):
+		"""
+		Given a list of DAG operations (from one layer), split them into 
+		depth-1 QuantumCircuits such that each circuit satisfies:
+		- It contains at most one one-qubit rotation gate (rx, ry, or rz)
+			possibly combined with other one-qubit (non-parameterized) gates,
+			OR
+		- It contains a single two-qubit gate (e.g. a cx gate).
+		
+		Parameters:
+		layer_ops: list of DAGOpNode objects from one layer.
+		num_qubits: number of qubits in the original circuit.
+		
+		Returns:
+		A list of QuantumCircuit objects (each depth-1 and meeting the constraints).
+		"""
+		subcircuits = []
+		
+		# ----- 1. Handle multi-qubit gates (e.g. cx) -----
+		# Each two-qubit gate (or in general, any gate acting on >1 qubit)
+		# must be isolated.
+		for op in layer_ops:
+			if len(op.qargs) > 1:
+				qc_temp = QuantumCircuit(num_qubits)
+				qc_temp.append(op.op, op.qargs, op.cargs)
+				subcircuits.append(qc_temp)
+		
+		# ----- 2. Handle one-qubit gates -----
+		one_qubit_ops = [op for op in layer_ops if len(op.qargs) == 1]
+		rotation_names = ['rx', 'ry', 'rz']
+		
+		# Partition one-qubit ops into rotation and non-rotation gates.
+		rotation_ops = []
+		non_rotation_ops = []
+		for op in one_qubit_ops:
+			if op.op.name in rotation_names:
+				rotation_ops.append(op)
+			else:
+				non_rotation_ops.append(op)
+		
+		# We want to group one-qubit ops so that each resulting circuit 
+		# has at most one rotation.
+		# Here’s one simple strategy:
+		#   (a) For each rotation gate, create a circuit that includes that rotation.
+		#       (Optionally, add any non-rotation gates that act on different qubits.)
+		#   (b) Then, combine any leftover non-rotation gates into a single circuit.
+		
+		# (a) Process each rotation op:
+		used_non_rotation = set()  # to mark non-rotation ops we assign along with a rotation
+		
+		for rot in rotation_ops:
+			qc_temp = QuantumCircuit(num_qubits)
+			qc_temp.append(rot.op, rot.qargs, rot.cargs)
+			# Add any non-rotation op that is on a different qubit than the rotation.
+			# (In a DAG layer, these should be disjoint—but we check just in case.)
+			for i, op in enumerate(non_rotation_ops):
+				if i not in used_non_rotation:
+					if op.qargs[0] != rot.qargs[0]:
+						qc_temp.append(op.op, op.qargs, op.cargs)
+						used_non_rotation.add(i)
+			subcircuits.append(qc_temp)
+		
+		# (b) For any remaining non-rotation ops not merged above, 
+		# group them together in one circuit.
+		remaining_non_rotation = [op for i, op in enumerate(non_rotation_ops) if i not in used_non_rotation]
+		if remaining_non_rotation:
+			qc_temp = QuantumCircuit(num_qubits)
+			for op in remaining_non_rotation:
+				qc_temp.append(op.op, op.qargs, op.cargs)
+			subcircuits.append(qc_temp)
+		
+		return subcircuits
+
+
+	# Convert the circuit to a DAG and extract its layers.
+	dag = circuit_to_dag(qc)
+	layers = list(dag.layers())
+
+	qcs = []
+	for layer in layers:
+		# layer['graph'].op_nodes() returns the operations in that layer.
+		layer_ops = list(layer['graph'].op_nodes())
+		subcirs = split_layer_into_subcircuits(layer_ops, qc.num_qubits)
+		qcs.extend(subcirs)
+	return qcs
+
+
+
+
 def qasm_to_qasmgates(qc_qasm):
     gates = qc_qasm.split('\n')[3:-1]
     qasm_gates = []
@@ -293,34 +388,34 @@ def qc_to_qcs_noncontrol(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircui
 
 
 
-def qc_to_qcs(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
-    """Split n-depth circuit into n sub-circuits
+# def qc_to_qcs(qc: qiskit.QuantumCircuit) -> list[qiskit.QuantumCircuit]:    
+#     """Split n-depth circuit into n sub-circuits
 
-    Args:
-        qc (qiskit.QuantumCircuit): Original circuit
+#     Args:
+#         qc (qiskit.QuantumCircuit): Original circuit
 
-    Returns:
-        list[qiskit.QuantumCircuit]: Splitted circuit depth by depth
-    """
-    def look_forward(qc: qiskit.QuantumCircuit, x):
-        qc.append(x[0], x[1])
-        return qc
-    depth = qc.depth()
-    qcs = []
-    if depth < 0:
-        raise "The depth must be >= 0"
-    for _ in range(depth):
-        qc1 = qiskit.QuantumCircuit(qc.num_qubits)
-        counter = 0
-        if qc.depth() == 1:
-            qcs.append(qc)
-            return qcs
-        for i in range(len(qc)):
-            qc1.append(qc[i][0], qc[i][1])
-            counter += 1
-            if qc1.depth() == 1 and look_forward(qc1.copy(), qc[i+1]).depth() > 1:
-                qc.data = qc.data[counter:]
-                qcs.append(qc1)
-                counter = 0
-                break
-    return qcs
+#     Returns:
+#         list[qiskit.QuantumCircuit]: Splitted circuit depth by depth
+#     """
+#     def look_forward(qc: qiskit.QuantumCircuit, x):
+#         qc.append(x[0], x[1])
+#         return qc
+#     depth = qc.depth()
+#     qcs = []
+#     if depth < 0:
+#         raise "The depth must be >= 0"
+#     for _ in range(depth):
+#         qc1 = qiskit.QuantumCircuit(qc.num_qubits)
+#         counter = 0
+#         if qc.depth() == 1:
+#             qcs.append(qc)
+#             return qcs
+#         for i in range(len(qc)):
+#             qc1.append(qc[i][0], qc[i][1])
+#             counter += 1
+#             if qc1.depth() == 1 and look_forward(qc1.copy(), qc[i+1]).depth() > 1:
+#                 qc.data = qc.data[counter:]
+#                 qcs.append(qc1)
+#                 counter = 0
+#                 break
+#     return qcs

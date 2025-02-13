@@ -2,7 +2,7 @@
 import numpy as np
 import re, qiskit
 from . import utilities, gate, tensor
-
+from .constant import constant_gate
 def qc_to_qasm(qc):
     from qiskit.qasm2 import dumps 
     return dumps(qc)
@@ -55,6 +55,86 @@ def parse_qasm(qasm_code):
             instructions.append((name.upper(), param, indices))
     
     return instructions[2:]
+
+
+def get_wires_of_gate(gate: qiskit.circuit.Gate):
+    """Get index bit that gate act on
+
+    Args:
+        - gate (qiskit.circuit.Gate): Quantum gate
+
+    Returns:
+        - List[int]: list of index bits
+    """
+    list_wire = []
+    for register in gate[1]:
+        list_wire.append(register._index)
+    return list_wire
+
+def qcs_to_gatess(qcs):
+    gatess = []
+    for qc in qcs:
+        gates = []
+        for gate in qc.data:
+            if gate.params == []:
+                params = -999
+            else:
+                params = gate.params[0]
+            gates.append((gate.name.upper(), params, get_wires_of_gate(gate)))
+        gatess.append(gates)
+    return gatess
+
+def gatess_to_str(gatess):
+    strs = []
+    strs.append(str(len(gatess)))
+    for gates in gatess:
+        # Consider a U include n gates
+        for gate1 in gates:
+            if gate1 == 0:
+                continue
+            gate_matrix = constant_gate[gate1[0]]
+            if gate1[0] in ['I', 'RZ']:
+                # Sparse
+                if gate1[0] in ['I']:
+                    gate_data = [0, gate1[2][0], (gate_matrix[0][0]), (gate_matrix[1][1])]
+                if gate1[0] in ['RZ']:
+                    param = gate1[1]
+                    gate_data = [0, gate1[2][0], gate_matrix(param)[0][0], gate_matrix(param)[1][1]]
+            if gate1[0] in ['RX', 'RY', 'H']:
+                # Dense
+                if gate1[0] in ['RX', 'RY']:
+                    param = gate1[1]
+                    gate_data = [1, gate1[2][0], gate_matrix(param)[0][0] + gate_matrix(param)[0][1],
+                            gate_matrix(param)[1][0] + gate_matrix(param)[1][1]]
+                if gate1[0] in ['H']:
+                    gate_data = [1, gate1[2][0], gate_matrix[0][0] + gate_matrix[0][1],
+                            gate_matrix[1][0] + gate_matrix[1][1]]
+            if gate1[0] in ['CX']:
+                gate_data = [2, str(gate1[2][0]), (gate1[2][1])]
+            for i in range(len(gate_data)):
+                strs.append(gate_data[i])
+    return strs
+
+
+def gatess_to_gatess_with_I(gatess1, num_qubits):
+    gatess = [[0 for _ in range(num_qubits)] for _ in range(len(gatess1))]
+    for index, gates in enumerate(gatess1):
+        slots = np.ones(num_qubits)
+        # print('---')
+        # print(gates)
+        for gate in gates:
+            if gate[0] == 'CX':
+                gatess[index][0] = ('CX', gate[1], gate[2])
+                slots = np.zeros(num_qubits)
+            else:
+                slots[gate[2][0]] = 0
+                gatess[index][gate[2][0]] = (gate[0], gate[1], gate[2])
+
+        for j, is_active in enumerate(slots):
+            if is_active:
+                gatess[index][j] = (['I', -999, [j]])
+    return gatess
+
 
 
 def qasmgates_to_qcs(gates: list) -> list[qiskit.QuantumCircuit]:
