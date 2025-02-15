@@ -113,6 +113,7 @@ def gatess_to_str(gatess):
                 gate_data = [2, str(gate1[2][0]), (gate1[2][1])]
             for i in range(len(gate_data)):
                 strs.append(gate_data[i])
+            strs.append('xxxxx\n')
     return strs
 
 
