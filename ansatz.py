@@ -183,7 +183,7 @@ def entangled_cnot_layer(qc: qiskit.QuantumCircuit) -> qiskit.QuantumCircuit:
     n = qc.num_qubits
     k = 0
     for i in range(0, n - 1):
-        qc.cnot(n - i - 1, n - 2 - i)
+        qc.cx(n - i - 1, n - 2 - i)
         k += 1
     return qc
 
