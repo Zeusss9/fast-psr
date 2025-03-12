@@ -4,7 +4,10 @@ from bitstring import BitArray
 
 
 def convert_binary_number_to_2complement_binary_number(number, bit_width):
-    temp_number = number[-bit_width:]
+    temp_number = number
+
+    if number.startswith('0b'):
+        temp_number = number[-bit_width:]
 
     binary_number = ''.join(['1' if i == '0' else '0' for i in temp_number])
     last_bit = 1
@@ -23,6 +26,47 @@ def convert_binary_number_to_2complement_binary_number(number, bit_width):
                 last_bit = 0
 
     return '0b' + binary_number
+
+# def convert_binary_number_to_2complement_binary_number(number, bit_width):
+#     """
+#     Convert a binary number to its 2's complement representation
+    
+#     Args:
+#         number (str): Binary number as a string (can include '0b' prefix)
+#         bit_width (int): Desired bit width of the result
+    
+#     Returns:
+#         str: 2's complement representation with '0b' prefix
+#     """
+#     # Remove '0b' prefix if present
+#     if number.startswith('0b'):
+#         number = number[2:]
+    
+#     # Take only the last bit_width bits
+#     temp_number = number[-bit_width:]
+    
+#     # Pad with zeros if necessary
+#     temp_number = temp_number.zfill(bit_width)
+    
+#     # Step 1: Flip all the bits (1's complement)
+#     binary_number = ''.join(['1' if i == '0' else '0' for i in temp_number])
+    
+#     # Step 2: Add 1 by simulating binary addition
+#     result = list(binary_number)
+#     carry = 1  # We need to add 1
+    
+#     for i in range(bit_width - 1, -1, -1):
+#         if carry == 0:
+#             break  # No more carry, we're done
+        
+#         if result[i] == '1':
+#             result[i] = '0'  # 1 + 1 = 0 with carry
+#             carry = 1
+#         else:
+#             result[i] = '1'  # 0 + 1 = 1 with no carry
+#             carry = 0
+    
+#     return '0b' + ''.join(result)
 
 
 def convert_pos_int_to_binary(pos_number, bit_width):
@@ -162,10 +206,12 @@ def convert_binary_to_fixedpoint(number, bit_width, dot_position): # From dot po
 
 
 def binary_to_hex(binary_str, bit_width):
-    # Remove the '0b' prefix
-    binary_str = binary_str[2:]
+    num = binary_str
+    if num.startswith('0b'):
+        num = num[-bit_width:]
+
     # Convert binary to integer
-    integer_value = int(binary_str, 2)
+    integer_value = int(num, 2)
     # Convert integer to hexadecimal and format it according to bit_width
     hex_value = hex(integer_value)[2:].zfill(bit_width // 4)
     return "0x" + hex_value
@@ -178,6 +224,21 @@ def int_to_binary(number, bit_width):
 
     # Format the number as a binary string with leading zeros
     return format(number, f'0{bit_width}b')[-bit_width:]
+
+def hex_to_bin_fixed_width(hex_str, bit_width):
+    """Convert hex string to binary string with a fixed bit width."""
+    # Convert hex to integer
+    value = int(hex_str, 16)
+    
+    # Format integer to binary string with leading zeros to match bit width
+    binary_str = format(value, f'0{bit_width}b')
+    
+    return '0b' + binary_str
+
+def hex_to_fixedpoint(hex_number,bit_width,fraction_width):
+    binary_number = hex_to_bin_fixed_width(hex_number,bit_width)
+    fixed_point_number = convert_binary_to_fixedpoint(binary_number, bit_width, fraction_width)
+    return fixed_point_number
 
 
 
